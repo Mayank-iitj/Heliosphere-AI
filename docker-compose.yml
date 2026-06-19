@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: ./backend
+    container_name: helio-backend
+    environment:
+      ENV: production
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: sqlite+aiosqlite:///./heliosphere.db
+      CORS_ORIGINS: http://localhost:3000
+      SCHEDULER_ENABLED: "true"
+      INGEST_INTERVAL_SECONDS: "60"
+      # GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: .
+    container_name: helio-frontend
+    environment:
+      NODE_ENV: production
+      # Server-side proxy target: reach the backend over the compose network.
+      API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

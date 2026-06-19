@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+/* ============ HelioSphere AI — design tokens ============ */
+@theme {
+  --color-space-950: #04060d;
+  --color-space-900: #070b16;
+  --color-space-800: #0b1120;
+  --color-space-700: #111a2e;
+  --color-space-600: #1a2740;
+  --color-panel: #0c1322;
+  --color-panel-border: #1d2b45;
+
+  --color-solar-50: #fff7ec;
+  --color-solar-300: #ffcf8b;
+  --color-solar-400: #ffb547;
+  --color-solar-500: #ff8a00;
+  --color-solar-600: #ff5e3a;
+  --color-corona: #ffd166;
+
+  --color-ink: #e8eefc;
+  --color-ink-muted: #93a1bd;
+  --color-ink-faint: #5d6c8a;
+
+  --color-risk-low: #3ddc97;
+  --color-risk-moderate: #ffd166;
+  --color-risk-high: #ff8a00;
+  --color-risk-severe: #ff4d4d;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis owns smooth scrolling */
+}
+
+body {
+  margin: 0;
+  background: var(--color-space-950);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--color-panel) 82%, transparent);
+  border: 1px solid var(--color-panel-border);
+  backdrop-filter: blur(14px);
+}
+
+.solar-gradient-text {
+  background: linear-gradient(
+    100deg,
+    var(--color-corona) 0%,
+    var(--color-solar-400) 38%,
+    var(--color-solar-600) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.grid-glow {
+  background-image: radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--color-solar-500) 18%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(var(--color-panel-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-panel-border) 1px, transparent 1px);
+  background-size: 100% 100%, 46px 46px, 46px 46px;
+  background-position: center, center, center;
+  -webkit-mask-image: radial-gradient(circle at 50% 30%, black, transparent 75%);
+  mask-image: radial-gradient(circle at 50% 30%, black, transparent 75%);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { opacity: 0; }
+}
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float-slow { animation: float-slow 7s ease-in-out infinite; }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--color-space-900); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-space-600);
+  border-radius: 9px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-solar-500); }
+
+@media (prefers-reduced-motion: reduce) {
+  .float-slow,
+  .pulse-ring::after {
+    animation: none;
+  }
+}
