@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:3000,http://localhost:3001"
 
-    # Optional copilot LLM
-    gemini_api_key: str | None = None
+    # HelioGPT copilot — Groq (llama-3.3-70b-versatile). Without a key the
+    # grounded rule-based engine answers — copilot always works offline.
+    groq_api_key: str | None = None
 
     # Background ingestion
     scheduler_enabled: bool = True

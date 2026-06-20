@@ -81,15 +81,17 @@ export function Panel({
   title,
   subtitle,
   action,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
   title?: string;
   subtitle?: string;
   action?: React.ReactNode;
+  style?: React.CSSProperties;
 }) {
   return (
-    <section className={clsx("glass rounded-2xl p-5", className)}>
+    <section className={clsx("glass rounded-2xl p-5", className)} style={style}>
       {(title || action) && (
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>

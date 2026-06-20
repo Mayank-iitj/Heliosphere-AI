@@ -131,3 +131,36 @@ html.lenis body {
     animation: none;
   }
 }
+
+/* Payload pin pulse */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ping {
+  animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Sticky scroll section — ensure iframe fills height */
+#aditya-l1 iframe {
+  display: block;
+}
+
+/* Payload annotation scan-line shimmer */
+@keyframes shimmer-x {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.04) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-x 3s linear infinite;
+}
+
