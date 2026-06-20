@@ -36,6 +36,19 @@ export interface ForecastHorizon {
   rationale: string;
 }
 
+export interface FlareNowcast {
+  timestamp: string;
+  horizon_minutes: number;
+  flare_probability: number; // 0..1
+  will_flare: boolean;
+  model: string; // "random_forest" | "gradient_boosting" | "heuristic"
+  threshold: number;
+  skill_tss: number | null;
+  features: Record<string, number>;
+  source: string; // "trained-model" | "heuristic-fallback"
+  note: string;
+}
+
 export interface ActiveRegion {
   id: string;
   noaa_number: number;
@@ -126,6 +139,8 @@ export const api = {
     request<SolarHistoryPoint[]>(`/solar/history?hours=${hours}`),
 
   forecast: () => request<ForecastHorizon[]>("/forecast"),
+  nowcast: (model: "rf" | "gb" = "rf") =>
+    request<FlareNowcast>(`/forecast/nowcast?model=${model}`),
   activeRegions: () => request<ActiveRegion[]>("/twin/active-regions"),
 
   alerts: () => request<Alert[]>("/alerts"),

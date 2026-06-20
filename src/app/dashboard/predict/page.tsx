@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { api, type ForecastHorizon } from "@/lib/api";
+import { api, type ForecastHorizon, type FlareNowcast } from "@/lib/api";
 import { useLiveSolar } from "@/lib/hooks";
 import { Panel, ProbBar, RiskBadge } from "@/components/ui/primitives";
 import Radar from "@/components/dashboard/Radar";
@@ -10,11 +10,16 @@ import clsx from "clsx";
 export default function PredictPage() {
   const { data } = useLiveSolar(10000);
   const [forecast, setForecast] = useState<ForecastHorizon[]>([]);
+  const [nowcast, setNowcast] = useState<FlareNowcast | null>(null);
   const [horizon, setHorizon] = useState(6);
 
   useEffect(() => {
-    api.forecast().then(setForecast).catch(() => {});
-    const id = setInterval(() => api.forecast().then(setForecast).catch(() => {}), 30000);
+    const pull = () => {
+      api.forecast().then(setForecast).catch(() => {});
+      api.nowcast("rf").then(setNowcast).catch(() => {});
+    };
+    pull();
+    const id = setInterval(pull, 30000);
     return () => clearInterval(id);
   }, []);
 
@@ -54,6 +59,87 @@ export default function PredictPage() {
           Ensemble + temporal model · updated continuously
         </span>
       </div>
+
+      {/* Trained-model 30-min nowcast (Aditya-L1 SoLEXS/HELIOS) */}
+      <Panel
+        title="30-Minute Flare Nowcast"
+        subtitle="Trained Aditya-L1 model · probability of flare onset within 30 min"
+        action={
+          nowcast && (
+            <span
+              className={clsx(
+                "rounded-full px-3 py-1 text-xs font-semibold",
+                nowcast.will_flare
+                  ? "bg-[var(--color-risk-severe)]/15 text-[var(--color-risk-severe)]"
+                  : "bg-[var(--color-risk-low)]/15 text-[var(--color-risk-low)]",
+              )}
+            >
+              {nowcast.will_flare ? "⚠ Flare expected" : "✓ No flare expected"}
+            </span>
+          )
+        }
+      >
+        {nowcast ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
+              <div>
+                <div className="font-mono text-4xl font-bold text-[var(--color-solar-300)]">
+                  {Math.round(nowcast.flare_probability * 100)}%
+                </div>
+                <div className="mt-1 text-xs text-[var(--color-ink-muted)]">
+                  onset probability · decision threshold{" "}
+                  {Math.round(nowcast.threshold * 100)}%
+                </div>
+              </div>
+              <div className="h-3 flex-1 overflow-hidden rounded-full bg-[var(--color-space-700)]">
+                <div
+                  className={clsx(
+                    "h-full rounded-full",
+                    nowcast.will_flare
+                      ? "bg-[var(--color-risk-severe)]"
+                      : "bg-[var(--color-solar-400)]",
+                  )}
+                  style={{ width: `${Math.round(nowcast.flare_probability * 100)}%` }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--color-panel-border)] pt-3 text-xs text-[var(--color-ink-muted)]">
+              <span>
+                Model:{" "}
+                <b className="font-mono text-[var(--color-ink)]">
+                  {nowcast.model.replace(/_/g, " ")}
+                </b>
+              </span>
+              {nowcast.skill_tss != null && (
+                <span>
+                  Test TSS:{" "}
+                  <b className="font-mono text-[var(--color-ink)]">
+                    {nowcast.skill_tss.toFixed(2)}
+                  </b>
+                </span>
+              )}
+              <span>
+                Source:{" "}
+                <b
+                  className={clsx(
+                    "font-mono",
+                    nowcast.source === "trained-model"
+                      ? "text-[var(--color-risk-low)]"
+                      : "text-[var(--color-ink)]",
+                  )}
+                >
+                  {nowcast.source}
+                </b>
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed text-[var(--color-ink-faint)]">
+              {nowcast.note}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--color-ink-muted)]">Loading nowcast…</p>
+        )}
+      </Panel>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Panel

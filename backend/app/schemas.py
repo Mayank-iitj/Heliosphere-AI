@@ -81,6 +81,21 @@ class ForecastHorizon(BaseModel):
     rationale: str
 
 
+class FlareNowcast(BaseModel):
+    """Output of the trained Aditya-L1 (SoLEXS/HELIOS) flare model."""
+
+    timestamp: datetime
+    horizon_minutes: int
+    flare_probability: float
+    will_flare: bool
+    model: str
+    threshold: float
+    skill_tss: float | None = None
+    features: dict[str, float] = {}
+    source: str
+    note: str
+
+
 # ---------- Twin ----------
 class ActiveRegion(BaseModel):
     id: str

@@ -1,0 +1,35 @@
+{
+  "feature_cols": [
+    "solexs_log",
+    "helios_log",
+    "solexs_mean_5m",
+    "solexs_mean_10m",
+    "solexs_mean_30m",
+    "solexs_std_5m",
+    "solexs_std_10m",
+    "helios_mean_5m",
+    "helios_std_5m",
+    "solexs_diff_1m",
+    "solexs_diff_5m",
+    "helios_diff_1m",
+    "flux_ratio",
+    "hard_soft_ratio",
+    "sigma_above_bg"
+  ],
+  "forecast_horizon_min": 30,
+  "sigma_threshold": 3.0,
+  "background_window_min": 30,
+  "rf_threshold": 0.4799999999999999,
+  "gb_threshold": 0.3499999999999999,
+  "test_tss": {
+    "random_forest": 0.27256638017036305,
+    "gradient_boosting": 0.36106687898089174,
+    "persistence": 0.19822442636789206
+  },
+  "built_with": {
+    "python": "3.14",
+    "scikit_learn": "1.9.0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3"
+  }
+}

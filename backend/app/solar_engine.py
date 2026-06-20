@@ -272,3 +272,18 @@ def reading_to_now(r: RawReading) -> dict:
 
 def current() -> RawReading:
     return synthesize(datetime.now(timezone.utc))
+
+
+def xray_series(end: datetime | None = None, minutes: int = 60) -> list[float]:
+    """
+    Per-minute soft-X-ray flux for the trailing ``minutes`` window, oldest →
+    newest. The synthesizer is deterministic in time, so this reconstructs a
+    coherent recent lightcurve for the trained flare model to consume.
+    """
+    from datetime import timedelta
+
+    end = end or datetime.now(timezone.utc)
+    return [
+        synthesize(end - timedelta(minutes=(minutes - 1 - i))).xray_flux
+        for i in range(minutes)
+    ]
