@@ -10,6 +10,7 @@ import { RISK_COLOR } from "@/components/ui/primitives";
 import Sun from "./Sun";
 import Corona from "./Corona";
 import Starfield from "./Starfield";
+import OrbitingAdityaL1 from "./OrbitingAdityaL1";
 
 const SUN_R = 1.7;
 
@@ -99,6 +100,7 @@ export default function TwinScene({
         <Starfield />
         <Sun radius={SUN_R} activity={activity} />
         <Corona />
+        <OrbitingAdityaL1 orbitRadius={3.5} speed={0.12} scale={0.12} />
         {regions.map((r) => (
           <RegionMarker
             key={r.id}
