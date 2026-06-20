@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import CanvasErrorBoundary from "./CanvasErrorBoundary";
 
 const HeroScene = dynamic(() => import("./HeroScene"), {
   ssr: false,
@@ -47,5 +48,9 @@ export default function HeroCanvas({ activity = 0.5 }: { activity?: number }) {
 
   if (ok === false) return <SunFallback />;
   if (ok === null) return <SunFallback />;
-  return <HeroScene activity={activity} />;
+  return (
+    <CanvasErrorBoundary fallback={<SunFallback />}>
+      <HeroScene activity={activity} />
+    </CanvasErrorBoundary>
+  );
 }

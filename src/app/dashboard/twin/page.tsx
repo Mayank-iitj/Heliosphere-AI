@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api, type ActiveRegion } from "@/lib/api";
 import { useLiveSolar } from "@/lib/hooks";
 import { Panel, RiskBadge } from "@/components/ui/primitives";
+import CanvasErrorBoundary from "@/components/three/CanvasErrorBoundary";
 import clsx from "clsx";
 
 const TwinScene = dynamic(() => import("@/components/three/TwinScene"), {
@@ -32,12 +33,20 @@ export default function TwinPage() {
         // header handled inside for full-bleed canvas
       >
         <div className="relative h-[64vh] min-h-[420px]">
-          <TwinScene
-            activity={data.activity}
-            regions={regions}
-            onSelect={setSelected}
-            selectedId={selected?.id}
-          />
+          <CanvasErrorBoundary
+            fallback={
+              <div className="grid h-full place-items-center text-sm text-[var(--color-ink-muted)]">
+                3D rendering unavailable on this device.
+              </div>
+            }
+          >
+            <TwinScene
+              activity={data.activity}
+              regions={regions}
+              onSelect={setSelected}
+              selectedId={selected?.id}
+            />
+          </CanvasErrorBoundary>
           <div className="pointer-events-none absolute left-4 top-4 rounded-lg bg-black/45 px-3 py-2 text-xs backdrop-blur">
             <div className="font-semibold text-[var(--color-ink)]">HelioTwin 3D</div>
             <div className="text-[var(--color-ink-muted)]">

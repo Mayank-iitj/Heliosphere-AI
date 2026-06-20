@@ -3,9 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type SolarNow } from "./api";
 
-/** Sensible demo values so the UI is never empty while the API warms up. */
+/**
+ * Sensible demo values so the UI is never empty while the API warms up.
+ * NOTE: `timestamp` must be a *stable constant*, not `new Date()` — this object
+ * is rendered during SSR/prerender and again on the client, and a live clock
+ * value would differ between the two and trip a React hydration mismatch (#418).
+ * Real timestamps arrive from the API after mount, which is fine.
+ */
 export const DEMO_SOLAR: SolarNow = {
-  timestamp: new Date().toISOString(),
+  timestamp: "2026-01-01T00:00:00.000Z",
   kp_index: 3,
   kp_label: "Unsettled",
   solar_wind_speed: 421,
