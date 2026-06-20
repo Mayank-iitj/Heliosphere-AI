@@ -1,0 +1,9 @@
+# The FastAPI backend deploys separately (see render.yaml) — keep it out of the
+# Vercel frontend build to keep deploys lean.
+backend/
+docker-compose.yml
+Dockerfile
+*.db
+*.sqlite3
+.venv/
+__pycache__/

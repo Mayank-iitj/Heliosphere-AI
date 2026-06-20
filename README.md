@@ -184,6 +184,7 @@ heliosphere-ai/
 │
 ├── docker-compose.yml                  # Both services, one command
 ├── render.yaml                         # Render.com one-click blueprint
+├── vercel.json                         # Vercel frontend deploy config
 └── README.md
 ```
 
@@ -308,7 +309,7 @@ Without a `GEMINI_API_KEY`, HelioGPT answers from a deterministic, grounded rule
 | Target | How |
 |---|---|
 | **Render** | The included [`render.yaml`](./render.yaml) provisions both services. Set the frontend's `API_PROXY_TARGET` to the backend URL and the backend's `CORS_ORIGINS` to the frontend URL. |
-| **Vercel + Python host** | Deploy the Next.js app to Vercel, `backend/` to Fly / Render / Railway, then point `API_PROXY_TARGET` at it. |
+| **Vercel + Python host** | The included [`vercel.json`](./vercel.json) deploys the Next.js app (Mumbai `bom1` region, security headers). Deploy `backend/` to Render / Fly / Railway, then set `API_PROXY_TARGET` in the Vercel project to the backend's public URL. |
 | **Docker anywhere** | Per-service `Dockerfile`s or `docker-compose.yml`. The frontend builds as a **standalone** server image. |
 
 ---
