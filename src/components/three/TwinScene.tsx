@@ -100,7 +100,7 @@ export default function TwinScene({
         <Starfield />
         <Sun radius={SUN_R} activity={activity} />
         <Corona />
-        <OrbitingAdityaL1 orbitRadius={3.5} speed={0.12} scale={0.12} />
+        <OrbitingAdityaL1 orbitRadius={3.5} speed={0.12} scale={0.22} />
         {regions.map((r) => (
           <RegionMarker
             key={r.id}

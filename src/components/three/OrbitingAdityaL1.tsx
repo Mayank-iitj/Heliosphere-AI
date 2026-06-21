@@ -210,29 +210,26 @@ export default function OrbitingAdityaL1({
           <pointLight position={[0, 0.9, 0]} intensity={0.3} color="#00ff88" distance={2} />
 
           {/* Aditya-L1 Annotation */}
-          <Html distanceFactor={8} position={[0, 2.5, 0]} center>
-            <div className="pointer-events-none whitespace-nowrap rounded-lg border border-[var(--color-panel-border)] bg-black/85 px-3 py-2 text-[11px] backdrop-blur shadow-[0_0_10px_rgba(0,255,136,0.2)]">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#00ff88] shadow-[0_0_5px_#00ff88]"></span>
-                <span className="font-mono font-semibold text-[#00ff88]">
+          <Html distanceFactor={8} position={[0, 1.8, 0]} center>
+            <div className="pointer-events-none whitespace-nowrap rounded-md border border-[var(--color-panel-border)] bg-black/85 px-2 py-1 text-[9px] backdrop-blur shadow-[0_0_8px_rgba(0,255,136,0.25)]">
+              <div className="flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-[#00ff88] shadow-[0_0_3px_#00ff88]"></span>
+                <span className="font-mono font-bold text-[#00ff88]">
                   Aditya-L1
                 </span>
-              </div>
-              <div className="mt-0.5 text-[var(--color-ink-muted)]">
-                L1 Halo Orbit (~1.5M km)
               </div>
             </div>
           </Html>
         </Float>
       </group>
 
-      {/* Orbital path visualization (subtle) */}
+      {/* Orbital path visualization (more visible) */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[orbitRadius - 0.01, orbitRadius + 0.01, 64]} />
+        <ringGeometry args={[orbitRadius - 0.015, orbitRadius + 0.015, 64]} />
         <meshBasicMaterial
-          color="#1d2b45"
+          color="#00ff88"
           transparent
-          opacity={0.15}
+          opacity={0.35}
           side={THREE.DoubleSide}
         />
       </mesh>
