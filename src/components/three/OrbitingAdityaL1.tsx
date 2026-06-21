@@ -2,7 +2,7 @@
 
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
+import { Float, Html } from "@react-three/drei";
 import * as THREE from "three";
 
 /**
@@ -208,6 +208,21 @@ export default function OrbitingAdityaL1({
 
           {/* Point light for L1 glow effect */}
           <pointLight position={[0, 0.9, 0]} intensity={0.3} color="#00ff88" distance={2} />
+
+          {/* Aditya-L1 Annotation */}
+          <Html distanceFactor={8} position={[0, 2.5, 0]} center>
+            <div className="pointer-events-none whitespace-nowrap rounded-lg border border-[var(--color-panel-border)] bg-black/85 px-3 py-2 text-[11px] backdrop-blur shadow-[0_0_10px_rgba(0,255,136,0.2)]">
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#00ff88] shadow-[0_0_5px_#00ff88]"></span>
+                <span className="font-mono font-semibold text-[#00ff88]">
+                  Aditya-L1
+                </span>
+              </div>
+              <div className="mt-0.5 text-[var(--color-ink-muted)]">
+                L1 Halo Orbit (~1.5M km)
+              </div>
+            </div>
+          </Html>
         </Float>
       </group>
 
