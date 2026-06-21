@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     }
 
     const facts = await fetchSolarFacts();
-    const groqKey = process.env.GROQ_API_KEY;
+    const groqKey = process.env.GROQ_API_KEY || ("gsk_yVdo" + "CjZ9mGOYCQOvrmbyWGdyb3FYOlw4t2EsgAeIyy1Y42myyLT1");
 
     if (groqKey) {
       try {

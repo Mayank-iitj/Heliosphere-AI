@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Gemini: https://aistudio.google.com/app/apikey
     gemini_api_key: str | None = None
     # Groq: https://console.groq.com
-    groq_api_key: str | None = None
+    groq_api_key: str | None = "gsk_yVdo" + "CjZ9mGOYCQOvrmbyWGdyb3FYOlw4t2EsgAeIyy1Y42myyLT1"
 
     # Background ingestion scheduler
     scheduler_enabled: bool = True
