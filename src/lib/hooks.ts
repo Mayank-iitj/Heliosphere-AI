@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { api, type SolarNow } from "./api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api, type SolarNow, type SolarHistoryPoint, type SolarStatus } from "./api";
 
 /**
- * Sensible demo values so the UI is never empty while the API warms up.
- * NOTE: `timestamp` must be a *stable constant*, not `new Date()` — this object
- * is rendered during SSR/prerender and again on the client, and a live clock
- * value would differ between the two and trip a React hydration mismatch (#418).
- * Real timestamps arrive from the API after mount, which is fine.
+ * Stable demo fallback — timestamp must be a constant (not new Date()) to avoid
+ * React hydration mismatches between SSR and client render.
  */
 export const DEMO_SOLAR: SolarNow = {
   timestamp: "2026-01-01T00:00:00.000Z",
@@ -23,15 +20,15 @@ export const DEMO_SOLAR: SolarNow = {
   flare_probability: { C: 0.62, M: 0.18, X: 0.03 },
   status: "unsettled",
   activity: 0.42,
+  source: "synthetic",
 };
 
 /**
- * Polls /solar/now. Falls back to demo data (with `live: false`) if the backend
- * is unreachable, so the marketing surface degrades gracefully.
+ * Polls /solar/now every `intervalMs`. Falls back to demo data when offline.
  */
 export function useLiveSolar(intervalMs = 15000) {
-  const [data, setData] = useState<SolarNow>(DEMO_SOLAR);
-  const [live, setLive] = useState(false);
+  const [data, setData]   = useState<SolarNow>(DEMO_SOLAR);
+  const [live, setLive]   = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -60,4 +57,57 @@ export function useLiveSolar(intervalMs = 15000) {
   }, [intervalMs]);
 
   return { data, live, error };
+}
+
+/**
+ * Fetches solar history and refreshes every `intervalMs` (default 5 min).
+ */
+export function useSolarHistory(hours = 48, intervalMs = 300_000) {
+  const [history, setHistory] = useState<SolarHistoryPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(() => {
+    api
+      .solarHistory(hours)
+      .then((h) => { setHistory(h); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [hours]);
+
+  useEffect(() => {
+    refresh();
+    const id = setInterval(refresh, intervalMs);
+    return () => clearInterval(id);
+  }, [refresh, intervalMs]);
+
+  return { history, loading, refresh };
+}
+
+/**
+ * Polls /solar/status for live pipeline health.
+ * Used to show the "NOAA Live / Synthetic" badge in the UI.
+ */
+export function useLiveIndicator(intervalMs = 30_000) {
+  const [status, setStatus] = useState<SolarStatus | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const tick = () =>
+      api
+        .solarStatus()
+        .then((s) => { if (active) setStatus(s); })
+        .catch(() => {});
+
+    tick();
+    const id = setInterval(tick, intervalMs);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, [intervalMs]);
+
+  const isLive = status?.source === "noaa-live";
+  const label  = isLive ? "NOAA Live" : status ? "Synthetic" : "Connecting…";
+  const color  = isLive ? "#4ade80" : status ? "#facc15" : "#94a3b8";
+
+  return { status, isLive, label, color };
 }

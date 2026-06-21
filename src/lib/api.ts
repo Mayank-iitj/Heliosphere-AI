@@ -1,29 +1,44 @@
 /**
- * Thin typed client for the HelioSphere FastAPI backend. All calls go through
- * Next's /api rewrite proxy so there are no CORS surprises in the browser.
+ * Typed REST client for the HelioSphere FastAPI backend.
+ * All calls go through Next's /api rewrite proxy — no CORS surprises.
  */
 
 export interface SolarNow {
   timestamp: string;
   kp_index: number;
   kp_label: string;
-  solar_wind_speed: number; // km/s
-  proton_density: number; // p/cm^3
-  bz: number; // nT
-  xray_flux: number; // W/m^2
-  xray_class: string; // e.g. "C2.4"
+  solar_wind_speed: number;   // km/s
+  proton_density: number;     // p/cm^3
+  bz: number;                 // nT
+  xray_flux: number;          // W/m^2
+  xray_class: string;         // e.g. "C2.4"
   sunspot_number: number;
   flare_probability: { C: number; M: number; X: number };
   status: "quiet" | "unsettled" | "active" | "storm";
-  activity: number; // 0..1 normalized for the 3D sun
+  activity: number;           // 0..1 for 3D sun
+  source: string;             // "noaa-live" | "synthetic"
 }
 
 export interface SolarHistoryPoint {
   timestamp: string;
   kp_index: number;
   solar_wind_speed: number;
+  proton_density: number;
+  bz: number;
   xray_flux: number;
   sunspot_number: number;
+  source: string;
+}
+
+export interface SolarStatus {
+  source: string;
+  cache_age_seconds: number;
+  consecutive_failures: number;
+  last_error: string | null;
+  last_kp: number | null;
+  last_xray_class: string | null;
+  use_live_upstream: boolean;
+  noaa_feeds: string[];
 }
 
 export interface ForecastHorizon {
@@ -39,24 +54,52 @@ export interface ForecastHorizon {
 export interface FlareNowcast {
   timestamp: string;
   horizon_minutes: number;
-  flare_probability: number; // 0..1
+  flare_probability: number;
   will_flare: boolean;
-  model: string; // "random_forest" | "gradient_boosting" | "heuristic"
+  model: string;
   threshold: number;
   skill_tss: number | null;
   features: Record<string, number>;
-  source: string; // "trained-model" | "heuristic-fallback"
+  source: string;
+  note: string;
+}
+
+export interface ModelStatus {
+  model_available: boolean;
+  model_name: string | null;
+  threshold: number | null;
+  test_tss: number | null;
+  sklearn_version: string | null;
+  numpy_version: string | null;
   note: string;
 }
 
 export interface ActiveRegion {
   id: string;
   noaa_number: number;
-  classification: string; // Hale class
+  classification: string;  // Hale class
   area: number;
   risk: "Low" | "Moderate" | "High" | "Severe";
+  risk_score: number;
   lat: number;
   lon: number;
+}
+
+export interface InstrumentStatus {
+  name: string;
+  acronym: string;
+  description: string;
+  wavelength: string;
+  operational: boolean;
+  health: "nominal" | "caution" | "warning";
+  note: string;
+}
+
+export interface TwinStatus {
+  instruments: InstrumentStatus[];
+  overall_health: "nominal" | "caution" | "warning";
+  activity_level: number;
+  data_source: string;
 }
 
 export interface Alert {
@@ -88,6 +131,7 @@ export interface AuthResult {
   user: AuthUser;
 }
 
+// ── Auth storage ──────────────────────────────────────────────────────────────
 const TOKEN_KEY = "helio_token";
 
 export function getToken(): string | null {
@@ -100,6 +144,7 @@ export function setToken(token: string | null) {
   else window.localStorage.removeItem(TOKEN_KEY);
 }
 
+// ── Core request ──────────────────────────────────────────────────────────────
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`/api${path}`, {
@@ -131,21 +176,23 @@ export class ApiError extends Error {
   }
 }
 
+// ── API surface ───────────────────────────────────────────────────────────────
 export const api = {
   health: () => request<{ status: string; version: string }>("/health"),
 
-  solarNow: () => request<SolarNow>("/solar/now"),
-  solarHistory: (hours = 48) =>
-    request<SolarHistoryPoint[]>(`/solar/history?hours=${hours}`),
+  solarNow:    ()              => request<SolarNow>("/solar/now"),
+  solarHistory: (hours = 48)  => request<SolarHistoryPoint[]>(`/solar/history?hours=${hours}`),
+  solarStatus:  ()             => request<SolarStatus>("/solar/status"),
 
-  forecast: () => request<ForecastHorizon[]>("/forecast"),
-  nowcast: (model: "rf" | "gb" = "rf") =>
-    request<FlareNowcast>(`/forecast/nowcast?model=${model}`),
+  forecast:    ()                     => request<ForecastHorizon[]>("/forecast"),
+  nowcast:     (model: "rf" | "gb" = "rf") => request<FlareNowcast>(`/forecast/nowcast?model=${model}`),
+  modelStatus: ()                     => request<ModelStatus>("/forecast/model-status"),
+
   activeRegions: () => request<ActiveRegion[]>("/twin/active-regions"),
+  twinStatus:    () => request<TwinStatus>("/twin/status"),
 
-  alerts: () => request<Alert[]>("/alerts"),
-  acknowledgeAlert: (id: number) =>
-    request<Alert>(`/alerts/${id}/ack`, { method: "POST" }),
+  alerts:          ()          => request<Alert[]>("/alerts"),
+  acknowledgeAlert: (id: number) => request<Alert>(`/alerts/${id}/ack`, { method: "POST" }),
 
   copilot: (question: string) =>
     request<CopilotReply>("/copilot/ask", {

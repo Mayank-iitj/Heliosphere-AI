@@ -54,14 +54,30 @@ class SolarNow(BaseModel):
     flare_probability: FlareProb
     status: Literal["quiet", "unsettled", "active", "storm"]
     activity: float
+    source: str = "synthetic"
 
 
 class SolarHistoryPoint(BaseModel):
     timestamp: datetime
     kp_index: float
     solar_wind_speed: float
+    proton_density: float
+    bz: float
     xray_flux: float
     sunspot_number: int
+    source: str = "synthetic"
+
+
+class SolarStatus(BaseModel):
+    """Live health status of the solar data pipeline."""
+    source: str
+    cache_age_seconds: float
+    consecutive_failures: int
+    last_error: str | None = None
+    last_kp: float | None = None
+    last_xray_class: str | None = None
+    use_live_upstream: bool
+    noaa_feeds: list[str]
 
 
 # ---------- Forecast ----------
@@ -83,7 +99,6 @@ class ForecastHorizon(BaseModel):
 
 class FlareNowcast(BaseModel):
     """Output of the trained Aditya-L1 (SoLEXS/HELIOS) flare model."""
-
     timestamp: datetime
     horizon_minutes: int
     flare_probability: float
@@ -96,6 +111,17 @@ class FlareNowcast(BaseModel):
     note: str
 
 
+class ModelStatus(BaseModel):
+    """Trained flare model load status."""
+    model_available: bool
+    model_name: str | None = None
+    threshold: float | None = None
+    test_tss: float | None = None
+    sklearn_version: str | None = None
+    numpy_version: str | None = None
+    note: str
+
+
 # ---------- Twin ----------
 class ActiveRegion(BaseModel):
     id: str
@@ -103,8 +129,26 @@ class ActiveRegion(BaseModel):
     classification: str
     area: int
     risk: Literal["Low", "Moderate", "High", "Severe"]
+    risk_score: float = 0.0
     lat: float
     lon: float
+
+
+class InstrumentStatus(BaseModel):
+    name: str
+    acronym: str
+    description: str
+    wavelength: str
+    operational: bool
+    health: Literal["nominal", "caution", "warning"]
+    note: str
+
+
+class TwinStatus(BaseModel):
+    instruments: list[InstrumentStatus]
+    overall_health: Literal["nominal", "caution", "warning"]
+    activity_level: float
+    data_source: str
 
 
 # ---------- Alerts ----------

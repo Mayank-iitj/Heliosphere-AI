@@ -23,19 +23,24 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite+aiosqlite:///./heliosphere.db"
 
-    # CORS
+    # CORS — comma separated; include deployed frontend URLs in production
     cors_origins: str = "http://localhost:3000,http://localhost:3001"
 
-    # HelioGPT copilot — Groq (llama-3.3-70b-versatile). Without a key the
-    # grounded rule-based engine answers — copilot always works offline.
+    # HelioGPT copilot — priority: Gemini → Groq → rule-based
+    # Gemini: https://aistudio.google.com/app/apikey
+    gemini_api_key: str | None = None
+    # Groq: https://console.groq.com
     groq_api_key: str | None = None
 
-    # Background ingestion
+    # Background ingestion scheduler
     scheduler_enabled: bool = True
     ingest_interval_seconds: int = 60
 
-    # Optional live upstream (NOAA SWPC). If unreachable, synthetic data is used.
-    use_live_upstream: bool = False
+    # Live NOAA SWPC upstream — enabled by default; falls back to synthetic on failure
+    use_live_upstream: bool = True
+    noaa_fetch_timeout_s: int = 8
+    # How many seconds a successful NOAA fetch is considered fresh (avoid hammering API)
+    noaa_cache_ttl_s: int = 55
 
     # Bootstrapped admin
     admin_email: str = "admin@heliosphere.ai"

@@ -1,25 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, type ForecastHorizon, type SolarHistoryPoint, type Alert } from "@/lib/api";
-import { useLiveSolar } from "@/lib/hooks";
+import { api, type ForecastHorizon, type Alert } from "@/lib/api";
+import { useLiveSolar, useSolarHistory, useLiveIndicator } from "@/lib/hooks";
 import { MetricCard, Panel, ProbBar, RiskBadge } from "@/components/ui/primitives";
 import AreaChart from "@/components/dashboard/AreaChart";
 import Link from "next/link";
 
 export default function MissionControl() {
-  const { data } = useLiveSolar(10000);
-  const [history, setHistory] = useState<SolarHistoryPoint[]>([]);
+  const { data, live }        = useLiveSolar(10_000);
+  const { history }           = useSolarHistory(48, 300_000);
+  const { label: srcLabel, color: srcColor, isLive } = useLiveIndicator(30_000);
   const [forecast, setForecast] = useState<ForecastHorizon[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts,   setAlerts]   = useState<Alert[]>([]);
 
   useEffect(() => {
-    api.solarHistory(48).then(setHistory).catch(() => {});
     api.forecast().then(setForecast).catch(() => {});
     api.alerts().then(setAlerts).catch(() => {});
     const id = setInterval(() => {
       api.alerts().then(setAlerts).catch(() => {});
-    }, 20000);
+    }, 20_000);
     return () => clearInterval(id);
   }, []);
 
@@ -27,19 +27,53 @@ export default function MissionControl() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5">
-      {/* Top metrics */}
+
+      {/* Live data source badge */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold tracking-tight">Mission Control</h1>
+        <div className="flex items-center gap-2 rounded-full border border-[var(--color-panel-border)] bg-[var(--color-space-900)]/60 px-3 py-1.5">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              background: srcColor,
+              boxShadow: isLive ? `0 0 6px ${srcColor}` : "none",
+            }}
+          />
+          <span className="font-mono text-xs" style={{ color: srcColor }}>
+            {srcLabel}
+          </span>
+          {!live && (
+            <span className="text-[10px] text-[var(--color-ink-faint)]">· backend connecting</span>
+          )}
+        </div>
+      </div>
+
+      {/* Top metric cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <MetricCard label="Kp Index" value={data.kp_index.toFixed(1)} hint={data.kp_label} />
+        <MetricCard
+          label="Kp Index"
+          value={data.kp_index.toFixed(1)}
+          hint={data.kp_label}
+        />
         <MetricCard label="X-ray" value={data.xray_class} hint="GOES" />
         <MetricCard label="Solar Wind" value={data.solar_wind_speed} unit="km/s" />
-        <MetricCard label="Bz" value={data.bz.toFixed(1)} unit="nT" hint={data.bz < 0 ? "South" : "North"} />
-        <MetricCard label="Density" value={data.proton_density.toFixed(1)} unit="p/cm³" />
+        <MetricCard
+          label="Bz (IMF)"
+          value={data.bz.toFixed(1)}
+          unit="nT"
+          hint={data.bz < 0 ? "Southward ⚡" : "Northward"}
+        />
+        <MetricCard
+          label="Proton Density"
+          value={data.proton_density.toFixed(1)}
+          unit="p/cm³"
+        />
         <MetricCard label="Sunspots" value={data.sunspot_number} hint="SILSO" />
       </div>
 
+      {/* Charts row 1 — Kp, Wind, X-ray */}
       <div className="grid gap-5 lg:grid-cols-3">
-        {/* Charts */}
-        <Panel className="lg:col-span-2" title="48-hour trends" subtitle="Kp index · solar wind · X-ray flux (log)">
+        <Panel className="lg:col-span-2" title="48-hour trends" subtitle="Kp · solar wind · X-ray flux">
           <div className="grid gap-5 sm:grid-cols-3">
             <ChartBlock
               label="Kp index"
@@ -90,12 +124,33 @@ export default function MissionControl() {
         </Panel>
       </div>
 
+      {/* Charts row 2 — Bz + Proton Density */}
+      <Panel title="Solar wind & IMF trends" subtitle="Bz (IMF) · proton density — 48h">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <ChartBlock
+            label="IMF Bz (nT)"
+            value={`${data.bz.toFixed(1)} nT`}
+            data={history.map((h) => h.bz)}
+            color={data.bz < -5 ? "var(--color-risk-severe)" : "#a78bfa"}
+          />
+          <ChartBlock
+            label="Proton density (p/cm³)"
+            value={`${data.proton_density.toFixed(1)} p/cm³`}
+            data={history.map((h) => h.proton_density)}
+            color="#34d399"
+          />
+        </div>
+      </Panel>
+
       {/* Alerts */}
       <Panel
         title="Recent alerts"
         subtitle="Autonomous HelioWatch"
         action={
-          <Link href="/dashboard/alerts" className="text-xs font-semibold text-[var(--color-solar-300)] hover:underline">
+          <Link
+            href="/dashboard/alerts"
+            className="text-xs font-semibold text-[var(--color-solar-300)] hover:underline"
+          >
             View all →
           </Link>
         }
@@ -112,10 +167,12 @@ export default function MissionControl() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-sm font-medium">{a.title}</span>
                     <span className="shrink-0 font-mono text-[10px] text-[var(--color-ink-faint)]">
-                      {new Date(a.created_at).toUTCString().slice(17, 22)}
+                      {formatAlertTime(a.created_at)}
                     </span>
                   </div>
-                  <p className="mt-0.5 line-clamp-1 text-xs text-[var(--color-ink-muted)]">{a.body}</p>
+                  <p className="mt-0.5 line-clamp-1 text-xs text-[var(--color-ink-muted)]">
+                    {a.body}
+                  </p>
                 </div>
               </li>
             ))}
@@ -129,6 +186,8 @@ export default function MissionControl() {
     </div>
   );
 }
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function ChartBlock({
   label,
@@ -159,10 +218,10 @@ function ChartBlock({
 }
 
 const LEVEL_COLOR: Record<string, string> = {
-  info: "var(--color-risk-low)",
-  watch: "var(--color-risk-moderate)",
+  info:    "var(--color-risk-low)",
+  watch:   "var(--color-risk-moderate)",
   warning: "var(--color-risk-high)",
-  severe: "var(--color-risk-severe)",
+  severe:  "var(--color-risk-severe)",
 };
 
 function LevelDot({ level }: { level: string }) {
@@ -172,4 +231,18 @@ function LevelDot({ level }: { level: string }) {
       style={{ background: LEVEL_COLOR[level] ?? "var(--color-ink-faint)" }}
     />
   );
+}
+
+function formatAlertTime(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "UTC",
+      timeZoneName: "short",
+    });
+  } catch {
+    return "—";
+  }
 }

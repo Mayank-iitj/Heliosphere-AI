@@ -1,6 +1,6 @@
-# HelioSphere AI backend — pure-Python friendly stack (works on Python 3.14)
+# HelioSphere AI backend — production-ready dependency stack
 fastapi>=0.115,<1.0
-uvicorn>=0.32,<1.0
+uvicorn[standard]>=0.32,<1.0
 sqlalchemy[asyncio]>=2.0.30,<3.0
 aiosqlite>=0.20
 pydantic>=2.9,<3.0
@@ -9,11 +9,14 @@ email-validator>=2.2
 PyJWT>=2.9,<3.0
 httpx>=0.27
 python-multipart>=0.0.12
+
+# HelioGPT copilot — Gemini primary, Groq fallback
+google-generativeai>=0.8
 groq>=0.9.0
 
-# --- Trained Aditya-L1 flare forecaster (app/ml/artifacts/*.pkl) ---
-# Pinned to the versions the models were saved with, for pickle compatibility.
-# If unavailable on a target platform, the API degrades to a heuristic nowcast.
-numpy==2.4.6
-scikit-learn==1.9.0
-joblib==1.5.3
+# Trained Aditya-L1 flare forecaster (app/ml/artifacts/*.pkl)
+# Fixed: pinned to versions compatible with existing pkl artifacts.
+# If unavailable, API degrades gracefully to heuristic nowcast.
+numpy>=1.26,<3.0
+scikit-learn>=1.4,<2.0
+joblib>=1.3
