@@ -20,8 +20,16 @@ export default function Topbar() {
   const [clock, setClock] = useState("--:--:--");
 
   useEffect(() => {
-    const tick = () =>
-      setClock(new Date().toUTCString().slice(17, 25) + " UTC");
+    const tick = () => {
+      const timeStr = new Date().toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      setClock(`${timeStr} IST (GMT+5:30)`);
+    };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);

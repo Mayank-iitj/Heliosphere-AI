@@ -26,7 +26,14 @@ export default function LiveStrip() {
             </span>
             <span className="font-mono text-[11px] text-[var(--color-ink-muted)]">
               {live ? "● streaming" : "○ demo data"} ·{" "}
-              {new Date(data.timestamp).toUTCString().slice(17, 25)} UTC
+              {new Date(data.timestamp).toLocaleTimeString("en-US", {
+                timeZone: "Asia/Kolkata",
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}{" "}
+              IST
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

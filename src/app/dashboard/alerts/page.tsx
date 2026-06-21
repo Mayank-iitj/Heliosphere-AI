@@ -103,7 +103,11 @@ export default function AlertsPage() {
                         {meta.label}
                       </span>
                       <span className="ml-auto font-mono text-[10px] text-[var(--color-ink-faint)]">
-                        {new Date(a.created_at).toUTCString().slice(5, 22)}
+                        {new Date(a.created_at).toLocaleString("en-US", {
+                          timeZone: "Asia/Kolkata",
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
                       </span>
                     </div>
                     <p className="mt-1 text-xs leading-relaxed text-[var(--color-ink-muted)]">{a.body}</p>
