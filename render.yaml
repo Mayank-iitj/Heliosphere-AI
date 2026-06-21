@@ -1,56 +1,16 @@
-# Render.com blueprint — one-click deploy of both services.
-# https://render.com/docs/blueprint-spec
-#
-# After deploying:
-# 1. Set CORS_ORIGINS in heliosphere-backend to your Vercel frontend URL
-# 2. Set API_PROXY_TARGET in heliosphere-frontend to the backend's Render URL
-# 3. Set GROQ_API_KEY in both services (or at least the backend)
-
 services:
   - type: web
     name: heliosphere-backend
-    runtime: python
+    env: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /api/health
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: ENV
         value: production
-      - key: DEBUG
-        value: "false"
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DATABASE_URL
-        value: sqlite+aiosqlite:///./heliosphere.db
-      - key: SCHEDULER_ENABLED
-        value: "true"
-      - key: INGEST_INTERVAL_SECONDS
-        value: "60"
-      # Set to your Vercel frontend URL after deploy
       - key: CORS_ORIGINS
-        sync: false
-      # Groq API key for HelioGPT copilot (llama-3.3-70b-versatile)
-      - key: GROQ_API_KEY
-        sync: false
-      - key: ADMIN_EMAIL
-        value: admin@heliosphere.ai
-      - key: ADMIN_PASSWORD
-        generateValue: true
-
-  - type: web
-    name: heliosphere-frontend
-    runtime: node
-    buildCommand: npm ci && npm run build
-    startCommand: node .next/standalone/server.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_PUBLIC_APP_NAME
-        value: HelioSphere AI
-      # Set to the heliosphere-backend Render URL after deploy
-      - key: API_PROXY_TARGET
-        sync: false
-      # Groq API key — used by the native /api/copilot/ask route
-      - key: GROQ_API_KEY
-        sync: false
+        value: "*"
+      - key: USE_LIVE_UPSTREAM
+        value: "true"

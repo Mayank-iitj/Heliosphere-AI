@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite+aiosqlite:///./heliosphere.db"
 
-    # CORS — comma separated; include deployed frontend URLs in production
-    cors_origins: str = "http://localhost:3000,http://localhost:3001"
+    # CORS — allow all for easy hackathon deployment
+    cors_origins: str = "*"
 
     # HelioGPT copilot — priority: Gemini → Groq → rule-based
     # Gemini: https://aistudio.google.com/app/apikey
